@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    tools {
+      maven 'maven3'
+    }
+    stages {
+        stage('SCM') {
+            steps {
+                git 'https://github.com/javahometech/dockeransiblejenkins'
+            }
+        }
+        stage('Maven Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                sh "docker build . -t andrei56063/study:tagname "
+            }
+        }
+        stage('DockerHub Push') {
+            steps {
+                withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPassword')]) {
+                    sh "docker login -u andrei56063 -p ${dockerHubPassword}"
+                }
+
+                sh "docker push andrei56063/study:tagname "
+            }
+        }
+    }
+}
